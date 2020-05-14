@@ -1,5 +1,9 @@
 export default {
   livingcategories:[],
   studycategories:[],
-  bmMarkerPoints:[]
+  bmMarkerPoints:[],
+  selectedMarkerPoints:[],
+  schoolList:[],
+  majorList:[],
+  selectedMajorList:[]
 }
