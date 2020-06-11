@@ -22,23 +22,38 @@
             </i-col>
           </Row>
 <!--          地图组件-->
-          <baidu-map class="bm-view"
-                     ak="v96mYLQal0sCjbxf11XpUN2knA2kzwpF"
-                     center="广州"
-                     :scroll-wheel-zoom="true"
-                     @dblclick="openAddSite">
-<!--            地图视图-->
-            <bm-view style="width: 100%; height:100%;"></bm-view>
-<!--            范围检索-->
-            <bm-local-search :keyword="keyword" :nearby="nearby" :auto-viewport="false" :panel="false"
-                             @markersset="searchMarkersSet"
-                             @infohtmlset="infohtmlset"></bm-local-search>
-            <bm-circle :center="nearby.center" :radius="nearby.radius"></bm-circle>
-<!--            标记点-->
-                      <bm-marker v-for="(item,index) in selectedMarkerPoints"
-                                 :key="index"
-                                 :position="{lng:item.site_lng, lat:item.site_lat}"/>
-          </baidu-map>
+          <div class="mapwrapper">
+            <baidu-map class="bm-view"
+                       ak="v96mYLQal0sCjbxf11XpUN2knA2kzwpF"
+                       :center="nearby.center"
+                       zoom="17"
+                       :scroll-wheel-zoom="true"
+                       @dblclick="openAddSite">
+              <!--            地图视图-->
+              <bm-view style="width: 100%; height:100%;"></bm-view>
+              <!--            范围检索-->
+              <bm-local-search :keyword="keyword" :nearby="nearby" :auto-viewport="false" :panel="false"
+                               @markersset="searchMarkersSet"></bm-local-search>
+              <bm-circle :center="nearby.center" :radius="nearby.radius"></bm-circle>
+              <!--            标记点-->
+              <bm-marker v-for="(item,index) in selectedMarkerPoints"
+                         :key="index"
+                         :position="{lng:item.site_lng, lat:item.site_lat}"
+                         @click="showSite(index)"/>
+            </baidu-map>
+            <div>
+              <List border size="large" v-if="pois.length!=0">
+                <ListItem v-for="(item,index) in pois" :key="index">
+                  <ListItemMeta :title="item.title" :description="item.address" />
+                  <template slot="action">
+                    <li>
+                      <Button type="text" @click="additeFromPOI(index)">add site</Button>
+                    </li>
+                  </template>
+                </ListItem>
+              </List>
+            </div>
+          </div>
         </div>
       </i-col>
     </Row>
@@ -54,6 +69,12 @@
         :lat="newSitesPoint.lat"
       ></add-site>
     </Drawer>
+    <Modal v-model="modal" draggable scrollable :title="clickedPoint.site_name">
+      <div>
+        <img :src="clickedPoint.site_picURL" style="width: 485px"/>
+        <div style="overflow-y: scroll; height: 200px;">{{clickedPoint.site_desc}}</div>
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -88,19 +109,16 @@
             radius: 1000
           },
           tempKeyword:'',
-          keyword:''
+          keyword:'',
+          pois:[],
+          modal:false,
+          clickedPoint:{}
         }
       },
       computed:{
         ...mapState(['selectedMarkerPoints'])
       },
       methods:{
-        /* BMap是百度地图的对象，直接new出来跟原始的百度地图API一样使用，map是地图对象，可以调用对应的地图方法，比如添加marker */
-        // map_handler({ BMap, map }) {
-        //   console.log("map_handler")
-        //   map.clearOverlays()
-        //   console.log("map_handler")
-        // },
         // 添加新地点相关
         openAddSite(e){
           this.newSitesPoint = e.point
@@ -114,16 +132,10 @@
         searchMarkersSet(pois){
           if (pois.length == 0){
             window.alert('附近没有符合的地点')
+          }else{
+            console.log(pois)
+            this.pois = pois
           }
-          console.log('-----------------------------pois--------------------------------')
-          pois[0].marker.addEventListener('click',function () {
-            window.alert('test')
-          })
-        },
-        infohtmlset(poi){
-          console.log('-----------------------------poi--------------------------------')
-          console.log(poi)
-
         },
         setKeyword(){
           this.keyword = this.tempKeyword
@@ -131,6 +143,15 @@
         cancelKeyword(){
           this.keyword = ''
           this.tempKeyword = ''
+          this.pois=[]
+        },
+        additeFromPOI(index){
+          this.newSitesPoint = this.pois[index].point
+          this.openAddSiteDrawer = true
+        },
+        showSite(index){
+          this.clickedPoint = this.selectedMarkerPoints[index]
+          this.modal=true
         }
       },
       mounted() {
@@ -155,5 +176,10 @@
     width: 100%;
     height: 560px;
     margin-top: 10px;
+    margin-bottom: 0px;
+  }
+  .mapwrapper{
+    height: 560px;
+    overflow-y: scroll;
   }
 </style>

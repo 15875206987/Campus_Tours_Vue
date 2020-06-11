@@ -2,19 +2,19 @@
   <div>
     <Table stripe border :columns="columns" :data="selectedMarkerPoints">
       <template slot-scope="{ row, index }" slot="action">
-        <Button type="primary" style="margin-right: 5px" @click="showSite(index)">详情</Button>
-        <Button type="error" @click="removeSite(index)">删除</Button>
+        <Icon type="md-eye" @click="showSite(index)" size="25" style="margin-right: 5px" color="green"/>
+        <Icon type="md-build" @click="updateSite(index)" size="25" style="margin-right: 5px" color="blue"/>
+        <Icon type="md-trash" @click="removeSite(index)" size="25" style="margin-right: 5px" color="red"/>
       </template>
     </Table>
     <Modal v-model="modal" draggable scrollable :title="clickedPoint.site_name">
       <div>
-        <label>ID：{{clickedPoint.site_id}}</label>
-        <label>分类：{{clickedPoint.category_id}}</label>
-        <label>经度：{{clickedPoint.site_lng}}</label>
-        <label>纬度：{{clickedPoint.site_lat}}</label>
-        <label>描述：{{clickedPoint.site_desc}}</label>
-        <img :src="clickedPoint.site_picURL">
+        <img :src="clickedPoint.site_picURL" style="width: 485px"/>
+        <div style="overflow-y: scroll; height: 200px;">{{clickedPoint.site_desc}}</div>
       </div>
+    </Modal>
+    <Modal v-model="updatemodal" draggable scrollable :title="clickedPoint.site_name">
+      <update-site :form-data="clickedPoint"></update-site>
     </Modal>
   </div>
 </template>
@@ -22,18 +22,16 @@
 <script>
     import axios from 'axios'
     import {mapState} from 'vuex'
+    import UpdateSite from "./updateSite";
     export default {
       name: "SitesTable",
+      components: {UpdateSite},
       data () {
         return {
           columns: [
             {
               title: 'ID',
               key: 'site_id'
-            },
-            {
-              title: 'Category',
-              key: 'category_id'
             },
             {
               title: 'Name',
@@ -57,18 +55,22 @@
           clickedPoint:{},
           modal:false,
           uploadURL:'https://localhost:8443/SCUT_Tour_JavaWeb/addsite',
-          formData:{}
+          formData:{},
+          updatemodal:false
         }
       },
       computed:{
         ...mapState(['selectedMarkerPoints'])
       },
       methods:{
+        updateSite(index){
+          this.clickedPoint = this.selectedMarkerPoints[index]
+          this.updatemodal=true
+        },
         removeSite(index){
           this.$store.dispatch('removeSite',this.selectedMarkerPoints[index].site_id)
         },
         showSite(index){
-          console.log(this.selectedMarkerPoints[index])
           this.clickedPoint = this.selectedMarkerPoints[index]
           this.modal = true
         },

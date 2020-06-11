@@ -5,5 +5,6 @@ export default {
   selectedMarkerPoints:[],
   schoolList:[],
   majorList:[],
-  selectedMajorList:[]
+  selectedMajorList:[],
+  universityInfo:{}
 }
